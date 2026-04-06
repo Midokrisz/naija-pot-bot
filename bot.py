@@ -56,7 +56,7 @@ async def join_pot(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         POTS[pot] = []
 
-app = ApplicationBuilder().token("YOUR_BOT_TOKEN").build()
+app = ApplicationBuilder().token("8695215440:AAF_b192wDpTozMcxp1JWOLJL1fgBdem0H0").build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(join_pot))
