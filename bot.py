@@ -1,7 +1,7 @@
 import random
 import os
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
 POTS = {
     "500": [],
@@ -12,7 +12,7 @@ POTS = {
 
 MAX_PLAYERS = 5
 
-def start(update: Update, context: CallbackContext):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("Join ₦500 Pot", callback_data="500")],
         [InlineKeyboardButton("Join ₦1000 Pot", callback_data="1000")],
@@ -21,31 +21,31 @@ def start(update: Update, context: CallbackContext):
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(
+    await update.message.reply_text(
         "🎰 Welcome to Naija Pot Game!\nChoose a pot to join:",
         reply_markup=reply_markup
     )
 
-def join_pot(update: Update, context: CallbackContext):
+async def join_pot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    query.answer()
+    await query.answer()
 
     pot = query.data
     user = query.from_user.username or query.from_user.first_name
 
     if pot not in POTS:
-        query.message.reply_text("Invalid pot selected.")
+        await query.message.reply_text("Invalid pot selected.")
         return
 
     if user in POTS[pot]:
-        query.message.reply_text("You already joined this pot!")
+        await query.message.reply_text("You already joined this pot!")
         return
 
     POTS[pot].append(user)
 
     players_list = "\n".join(POTS[pot])
 
-    query.message.reply_text(
+    await query.message.reply_text(
         f"💰 ₦{pot} Pot\n"
         f"Players ({len(POTS[pot])}/{MAX_PLAYERS}):\n{players_list}"
     )
@@ -53,7 +53,7 @@ def join_pot(update: Update, context: CallbackContext):
     if len(POTS[pot]) == MAX_PLAYERS:
         winner = random.choice(POTS[pot])
 
-        query.message.reply_text(
+        await query.message.reply_text(
             f"🎉 ₦{pot} POT FULL!\n\n"
             f"Players:\n{players_list}\n\n"
             f"🏆 Winner: {winner}"
@@ -68,27 +68,13 @@ def main():
         print("Error: BOT_TOKEN not set")
         return
 
-    updater = Updater(TOKEN)
-    dispatcher = updater.dispatcher
+    app = ApplicationBuilder().token(TOKEN).build()
 
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CallbackQueryHandler(join_pot))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(join_pot))
 
     print("Bot is running...")
-    updater.start_polling()
-    updater.idle()
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
-
-TOKEN = os.getenv("BOT_TOKEN")
-
-updater = Updater(TOKEN)
-dispatcher = updater.dispatcher
-
-dispatcher.add_handler(CommandHandler("start", start))
-dispatcher.add_handler(CallbackQueryHandler(join_pot))
-
-print("Bot is running...")
-updater.start_polling()
-updater.idle()
