@@ -72,7 +72,7 @@ def main():
     app.add_handler(CallbackQueryHandler(join_pot))
 
     print("Bot is running...")
-    app.run_polling()
+    app.run_polling(close_loop=False)
 
 if __name__ == "__main__":
     main()
