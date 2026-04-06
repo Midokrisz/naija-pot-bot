@@ -33,6 +33,10 @@ def join_pot(update: Update, context: CallbackContext):
     pot = query.data
     user = query.from_user.username or query.from_user.first_name
 
+    if pot not in POTS:
+        query.message.reply_text("Invalid pot selected.")
+        return
+
     if user in POTS[pot]:
         query.message.reply_text("You already joined this pot!")
         return
@@ -56,6 +60,26 @@ def join_pot(update: Update, context: CallbackContext):
         )
 
         POTS[pot] = []
+
+def main():
+    TOKEN = os.getenv("BOT_TOKEN")
+
+    if not TOKEN:
+        print("Error: BOT_TOKEN not set")
+        return
+
+    updater = Updater(TOKEN)
+    dispatcher = updater.dispatcher
+
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CallbackQueryHandler(join_pot))
+
+    print("Bot is running...")
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == "__main__":
+    main()
 
 TOKEN = os.getenv("BOT_TOKEN")
 
