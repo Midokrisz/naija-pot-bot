@@ -1,4 +1,5 @@
 import random
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
@@ -32,12 +33,15 @@ async def join_pot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     pot = query.data
     user = query.from_user.username or query.from_user.first_name
 
+    # Prevent duplicate entry
     if user in POTS[pot]:
         await query.message.reply_text("You already joined this pot!")
         return
 
+    # Add player
     POTS[pot].append(user)
 
+    # Show players
     players_list = "\n".join(POTS[pot])
 
     await query.message.reply_text(
@@ -45,6 +49,7 @@ async def join_pot(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Players ({len(POTS[pot])}/{MAX_PLAYERS}):\n{players_list}"
     )
 
+    # If pot is full → pick winner
     if len(POTS[pot]) == MAX_PLAYERS:
         winner = random.choice(POTS[pot])
 
@@ -54,9 +59,13 @@ async def join_pot(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"🏆 Winner: {winner}"
         )
 
+        # Reset pot
         POTS[pot] = []
 
-app = ApplicationBuilder().token("8695215440:AAF_b192wDpTozMcxp1JWOLJL1fgBdem0H0").build()
+# Get bot token from environment variable
+TOKEN = os.getenv("BOT_TOKEN")
+
+app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(join_pot))
