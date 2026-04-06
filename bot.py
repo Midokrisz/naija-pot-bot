@@ -59,7 +59,7 @@ def join_pot(update: Update, context: CallbackContext):
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-updater = Updater(TOKEN, use_context=True)
+updater = Updater(TOKEN)
 dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler("start", start))
